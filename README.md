@@ -1,18 +1,12 @@
 # Typecast
 
 <p align="center">
-  <strong>Images → binary, ASCII &amp; character art</strong><br />
-  Local browser converter · zoom stage · export HD–8K
+  <strong>Images to binary, ASCII and character art</strong><br />
+  Local browser converter. Zoom stage. Export HD to 8K.
 </p>
 
 <p align="center">
-  <a href="https://typecast2.vercel.app"><strong>Live demo</strong></a>
-  ·
-  <a href="https://github.com/wiktorekdev/typecast">GitHub</a>
-</p>
-
-<p align="center">
-  <a href="https://typecast2.vercel.app"><img src="https://img.shields.io/badge/demo-typecast2.vercel.app-000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live demo" /></a>
+  <a href="https://typecast2.vercel.app"><img src="https://img.shields.io/badge/live-typecast2.vercel.app-000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live demo" /></a>
 </p>
 
 <p align="center">
@@ -21,64 +15,44 @@
   <a href="https://github.com/wiktorekdev/typecast/issues"><img src="https://img.shields.io/github/issues/wiktorekdev/typecast?style=flat&color=orange" alt="Issues" /></a>
   <a href="https://github.com/wiktorekdev/typecast/pulls"><img src="https://img.shields.io/github/issues-pr/wiktorekdev/typecast?style=flat&color=blueviolet" alt="PRs" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/wiktorekdev/typecast?style=flat&color=green" alt="License" /></a>
-</p>
-
-<p align="center">
   <img src="https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react&logoColor=black" alt="React" />
   <img src="https://img.shields.io/badge/Vite-6-646CFF?style=flat&logo=vite&logoColor=white" alt="Vite" />
   <img src="https://img.shields.io/badge/Tailwind-4-38BDF8?style=flat&logo=tailwindcss&logoColor=white" alt="Tailwind" />
-  <img src="https://img.shields.io/badge/Bun-ready-000?style=flat&logo=bun&logoColor=white" alt="Bun" />
-  <img src="https://img.shields.io/badge/Web_Worker-yes-0A0A0A?style=flat" alt="Worker" />
+  <img src="https://img.shields.io/badge/i18n-EN%20%7C%20PL%20%7C%20DE%20%7C%20ES%20%7C%20FR%20%7C%20UK-111?style=flat" alt="i18n" />
   <img src="https://img.shields.io/badge/privacy-100%25%20local-111?style=flat" alt="Privacy" />
-  <img src="https://img.shields.io/badge/platform-browser-informational?style=flat" alt="Platform" />
   <img src="https://img.shields.io/github/last-commit/wiktorekdev/typecast?style=flat" alt="Last commit" />
   <img src="https://img.shields.io/badge/language-JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black" alt="JavaScript" />
-  <img src="https://img.shields.io/badge/i18n-EN%20%7C%20PL%20%7C%20DE%20%7C%20ES%20%7C%20FR%20%7C%20UK-111?style=flat" alt="i18n" />
-  <img src="https://img.shields.io/github/repo-size/wiktorekdev/typecast?style=flat" alt="Repo size" />
+  <img src="https://img.shields.io/badge/export-HD%20%7C%202K%20%7C%204K%20%7C%208K-0A0A0A?style=flat" alt="Export sizes" />
+</p>
+
+<p align="center">
+  <a href="https://typecast2.vercel.app"><strong>Open app</strong></a>
+  ·
+  <a href="#features">Features</a>
+  ·
+  <a href="#stack">Stack</a>
+  ·
+  <a href="#develop">Develop</a>
+  ·
+  <a href="#deploy">Deploy</a>
 </p>
 
 ---
 
-## At a glance
+Drop a photo. Pick a charset. Export a high-res character render.
 
-| | |
-|:--|:--|
-| **What** | Image → character grid (binary, ASCII, blocks, matrix, custom) |
-| **Where** | Fully in-browser — no uploads |
-| **Export** | PNG · JPEG · WebP at HD / 2K / 4K / 8K |
-| **Input** | PNG, JPG, WEBP, GIF (drop, paste, file picker) |
-| **Charsets** | 6 built-in + custom string |
-| **Color** | Tinted, colored, B&W, inverted, neon |
-| **UX** | Stage, scroll-zoom, pan, floating bar |
-| **Perf** | Canvas renderer + optional Web Worker |
-
-### Numbers
-
-| Metric | Value |
-|--------|------:|
-| Charsets (built-in) | **6** + custom |
-| Color modes | **6** |
-| Export formats | **3** (PNG / JPEG / WebP) |
-| Export size presets | **4** (HD · 2K · 4K · 8K) |
-| Column range | **60 – 400** |
-| Font size range | **4 – 20 px** |
-| Contrast range | **0.5× – 3×** |
-| Zoom (view) | **~15% – 800%** of fit |
-| Max export scale factor | up to **~16×** base grid |
-| Cloud processing | **0** |
-
----
+Everything runs in your browser. Nothing is uploaded.
 
 ## Features
 
-- **Stage-first UI** — large preview, floating control bar (zoom · pan · export)
-- **Scroll zoom / drag pan** — fit = 100%; clean scaling when zoomed out
-- **Charsets** — binary `01`, digits, hex, density ASCII, block `░▒▓█`, matrix カナ, custom
-- **Color modes** — tinted, tinted raw, full color, B&W, inverted, neon
-- **Export panel** — format + size presets with live pixel dimensions
-- **Worker render** — heavy jobs off the main thread when the browser allows it
-- **Privacy-first** — pixels never leave the device
-- **i18n** — EN · PL · DE · ES · FR · UK (instant switch, saved in `localStorage`)
+- **Stage-first UI** with floating bar for zoom, pan, replace and export
+- **Scroll zoom and drag pan** (fit is 100%; smooth when zoomed out)
+- **Charsets:** binary `01`, digits, hex, density ASCII, blocks `░▒▓█`, matrix カナ, custom
+- **Color modes:** tinted, tinted raw, full color, B&W, inverted, neon
+- **Export panel:** PNG / JPEG / WebP at **HD · 2K · 4K · 8K**
+- **Web Worker** render path for heavy jobs
+- **i18n:** EN · PL · DE · ES · FR · UK (instant switch, saved locally)
+- **Privacy-first:** pixels never leave the device
 
 ## Stack
 
@@ -100,7 +74,7 @@ bun run dev
 ```
 
 ```bash
-bun run build   # → dist/
+bun run build
 bun run preview
 ```
 
@@ -108,7 +82,7 @@ bun run preview
 
 Live: **[typecast2.vercel.app](https://typecast2.vercel.app)**
 
-Connected to this repo — push to `main` deploys automatically on Vercel.
+Push to `main` deploys on Vercel automatically.
 
 ```bash
 npx vercel --prod
@@ -116,24 +90,24 @@ npx vercel --prod
 
 ## How it works
 
-1. Source image is sampled to a character grid (`columns` × aspect)
-2. Luminance drives density / charset selection
-3. Glyphs are drawn on a high-res canvas (centered on integer pixels)
+1. Sample the image into a character grid (`columns` × aspect)
+2. Map luminance to density or charset choice
+3. Draw glyphs on a high-res canvas (integer pixel centers)
 4. Preview uses a screen-sized render; export re-renders at HD–8K on demand
 
 ```
-Image  →  sample grid  →  map luminance → chars  →  canvas  →  PNG/JPEG/WebP
-                ↑                    ↑
-           columns / font      color mode / tint
+Image → sample grid → luminance → chars → canvas → PNG / JPEG / WebP
+              ↑                      ↑
+         columns / font        color mode / tint
 ```
 
 ## Privacy
 
-Everything runs **in your browser**. No upload API, no account, no tracking required for conversion.
+Conversion is **100% local**. No upload API. No account required.
 
 ## Contributing
 
-Issues and PRs welcome. Keep the core **local-only** (no server-side image pipeline).
+Issues and PRs welcome. Keep the core local-only (no server-side image pipeline).
 
 ## License
 
