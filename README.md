@@ -1,7 +1,11 @@
 # Typecast
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-zinc.svg)](LICENSE)
+
 **Turn any image into high-res type art.**  
 Drop a photo, tweak characters and color, export HD → 8K PNG, JPEG, or WebP.
+
+**Repo:** [github.com/wiktorekdev/typecast](https://github.com/wiktorekdev/typecast)
 
 <p align="center">
   <a href="#features">Features</a>
