@@ -136,6 +136,14 @@ export default function App() {
     <div className="flex h-dvh flex-col overflow-hidden bg-zinc-950 text-zinc-50">
       <header className="flex h-12 shrink-0 items-center justify-between gap-3 border-b border-zinc-800/80 px-4">
         <div className="flex min-w-0 items-center gap-2.5">
+          <img
+            src="/logo.svg"
+            alt=""
+            width={28}
+            height={28}
+            className="size-7 shrink-0 text-zinc-50"
+            draggable={false}
+          />
           <span className="text-[14px] font-semibold tracking-tight">{t("brand")}</span>
           {sourceCanvas && fileName && (
             <span className="hidden min-w-0 max-w-[12rem] truncate text-[12px] text-zinc-500 md:inline">
@@ -177,7 +185,7 @@ export default function App() {
                 )}
               >
                 <div className="flex size-12 items-center justify-center rounded-2xl bg-zinc-900 ring-1 ring-zinc-800">
-                  <UploadSimple className="size-5 text-zinc-400" weight="bold" />
+                  <img src="/logo.svg" alt="" className="size-7 text-zinc-50" draggable={false} />
                 </div>
                 <div className="flex flex-col items-center gap-1 px-4">
                   <span className="text-[15px] font-medium tracking-tight">
