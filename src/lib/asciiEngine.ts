@@ -1,6 +1,65 @@
 // High-quality ASCII renderer (main thread + worker safe with OffscreenCanvas)
 
-export const CHAR_SETS = {
+export type CharSetId =
+  | "binary"
+  | "digits"
+  | "hex"
+  | "standard"
+  | "blocks"
+  | "matrix"
+  | "custom"
+
+export type ColorModeId =
+  | "tinted"
+  | "tintedRaw"
+  | "colored"
+  | "bw"
+  | "inverted"
+  | "neon"
+
+export type AsciiOptions = {
+  cols: number
+  charSet: CharSetId | string
+  customChars: string
+  fontFamily: string
+  fontSize: number
+  colorMode: ColorModeId | string
+  bgColor: string
+  fgColor: string
+  tintColor: string
+  brightness: number
+  contrast: number
+  saturation: number
+  threshold: number
+  invert: boolean
+  charAspect: number
+  scale: number
+}
+
+export type AsciiOptionsInput = Partial<AsciiOptions>
+
+export type AsciiSource = HTMLCanvasElement | OffscreenCanvas | ImageBitmap
+
+export type RenderCanvas = HTMLCanvasElement | OffscreenCanvas
+
+export type AsciiCell = {
+  ch: string
+  r: number
+  g: number
+  b: number
+  adj: number
+  rawLum: number
+}
+
+export type AsciiGrid = {
+  cols: number
+  rows: number
+  charW: number
+  charH: number
+  grid: AsciiCell[][]
+}
+
+export const CHAR_SETS: Record<CharSetId, { label: string; chars: string }> = {
   binary: { label: "Binary 0/1", chars: "01" },
   digits: { label: "Digits 0-9", chars: "0123456789" },
   hex: { label: "Hex 0-F", chars: "0123456789ABCDEF" },
@@ -21,9 +80,9 @@ export const FONTS = [
   { label: "Space Mono", value: '"Space Mono", monospace' },
   { label: "Consolas", value: '"Consolas", monospace' },
   { label: "Monospace", value: "monospace" },
-]
+] as const
 
-export const COLOR_MODES = {
+export const COLOR_MODES: Record<ColorModeId, { label: string }> = {
   tinted: { label: "Tinted" },
   tintedRaw: { label: "Tinted raw" },
   colored: { label: "Colored" },
@@ -32,23 +91,22 @@ export const COLOR_MODES = {
   neon: { label: "Neon" },
 }
 
-// density-ordered sets: index maps to luminance (dark → light when inverted false means bright = denser char)
-const DENSITY_SETS = new Set(["standard", "blocks"])
+const DENSITY_SETS = new Set<string>(["standard", "blocks"])
 
-function hexToRgb(hex) {
+function hexToRgb(hex: string) {
   const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
   return r
     ? { r: parseInt(r[1], 16), g: parseInt(r[2], 16), b: parseInt(r[3], 16) }
     : { r: 255, g: 255, b: 255 }
 }
 
-function cellHash(row, col) {
+function cellHash(row: number, col: number) {
   let h = Math.imul(row + 1, 73856093) ^ Math.imul(col + 1, 19349663)
   h ^= h >>> 13
   return h >>> 0
 }
 
-function createCanvas(w, h) {
+function createCanvas(w: number, h: number): RenderCanvas {
   if (typeof OffscreenCanvas !== "undefined") {
     try {
       return new OffscreenCanvas(w, h)
@@ -65,16 +123,20 @@ function createCanvas(w, h) {
   throw new Error("No canvas available")
 }
 
-function get2d(canvas) {
-  const ctx = canvas.getContext("2d", { alpha: false, desynchronized: true })
+function get2d(canvas: RenderCanvas) {
+  const ctx = canvas.getContext("2d", { alpha: false, desynchronized: true }) as
+    | CanvasRenderingContext2D
+    | OffscreenCanvasRenderingContext2D
+    | null
   if (!ctx) throw new Error("2d context unavailable")
   return ctx
 }
 
-/**
- * Compute output pixel size for given options (scale = render DPI multiplier).
- */
-export function measureOutput(sourceW, sourceH, options) {
+export function measureOutput(
+  sourceW: number,
+  sourceH: number,
+  options: AsciiOptionsInput
+) {
   const {
     cols = 160,
     fontSize = 8,
@@ -91,24 +153,31 @@ export function measureOutput(sourceW, sourceH, options) {
   return { cols, rows, charW, charH, outW, outH }
 }
 
-/**
- * Scale factor so output width ≈ targetW.
- */
-export function scaleForTargetWidth(sourceW, sourceH, options, targetW) {
+export function scaleForTargetWidth(
+  sourceW: number,
+  sourceH: number,
+  options: AsciiOptionsInput,
+  targetW: number
+) {
   const base = measureOutput(sourceW, sourceH, { ...options, scale: 1 })
   if (base.outW <= 0) return 3
   return Math.min(16, Math.max(0.5, targetW / base.outW))
 }
 
-/** Cap decode size so huge camera photos don't OOM the tab. */
 export const MAX_SOURCE_EDGE = 4096
 
-function resolveChars(charSet, customChars) {
+function resolveChars(charSet: string, customChars: string) {
   if (charSet === "custom") return customChars || "01"
-  return CHAR_SETS[charSet]?.chars || "01"
+  return CHAR_SETS[charSet as CharSetId]?.chars || "01"
 }
 
-function pickChar(chars, charSet, adj, row, col) {
+function pickChar(
+  chars: string,
+  charSet: string,
+  adj: number,
+  row: number,
+  col: number
+) {
   const useDensity = DENSITY_SETS.has(charSet) || charSet === "custom"
   if (useDensity && chars.length > 1) {
     const idx = Math.round(adj * (chars.length - 1))
@@ -118,11 +187,10 @@ function pickChar(chars, charSet, adj, row, col) {
   return chars[cellHash(row, col) % chars.length]
 }
 
-/**
- * Sample source into a character grid (shared by canvas + text export).
- * Each cell: { ch, r, g, b, adj, rawLum } — ch may be " " for empty.
- */
-export function buildAsciiGrid(source, options = {}) {
+export function buildAsciiGrid(
+  source: AsciiSource,
+  options: AsciiOptionsInput = {}
+): AsciiGrid {
   const {
     cols = 160,
     charSet = "binary",
@@ -149,14 +217,14 @@ export function buildAsciiGrid(source, options = {}) {
   const sctx = get2d(sample)
   sctx.imageSmoothingEnabled = true
   sctx.imageSmoothingQuality = "high"
-  sctx.drawImage(source, 0, 0, cols, rows)
+  sctx.drawImage(source as CanvasImageSource, 0, 0, cols, rows)
   const px = sctx.getImageData(0, 0, cols, rows).data
 
   const thresholdVal = threshold / 100
-  const grid = []
+  const grid: AsciiCell[][] = []
 
   for (let r = 0; r < rows; r++) {
-    const line = []
+    const line: AsciiCell[] = []
     for (let c = 0; c < cols; c++) {
       const i = (r * cols + c) * 4
       const R = px[i]
@@ -183,11 +251,10 @@ export function buildAsciiGrid(source, options = {}) {
   return { cols, rows, charW, charH, grid }
 }
 
-/**
- * Core render. source can be Canvas, OffscreenCanvas, or ImageBitmap.
- * Returns canvas (HTMLCanvasElement or OffscreenCanvas).
- */
-export function renderAscii(source, options = {}) {
+export function renderAscii(
+  source: AsciiSource,
+  options: AsciiOptionsInput = {}
+): RenderCanvas {
   const {
     fontFamily = '"Courier New", monospace',
     fontSize = 8,
@@ -268,7 +335,7 @@ export function renderAscii(source, options = {}) {
   return out
 }
 
-export function loadImageToCanvas(file) {
+export function loadImageToCanvas(file: Blob): Promise<HTMLCanvasElement> {
   return new Promise((resolve, reject) => {
     const img = new Image()
     const url = URL.createObjectURL(file)
@@ -285,6 +352,11 @@ export function loadImageToCanvas(file) {
       c.width = w
       c.height = h
       const ctx = c.getContext("2d", { alpha: false })
+      if (!ctx) {
+        URL.revokeObjectURL(url)
+        reject(new Error("2d context unavailable"))
+        return
+      }
       ctx.imageSmoothingEnabled = true
       ctx.imageSmoothingQuality = "high"
       ctx.drawImage(img, 0, 0, w, h)
@@ -299,12 +371,16 @@ export function loadImageToCanvas(file) {
   })
 }
 
-export function canvasToBlob(canvas, format = "image/png", quality = 0.95) {
-  if (canvas.convertToBlob) {
+export function canvasToBlob(
+  canvas: RenderCanvas,
+  format = "image/png",
+  quality = 0.95
+): Promise<Blob> {
+  if ("convertToBlob" in canvas && typeof canvas.convertToBlob === "function") {
     return canvas.convertToBlob({ type: format, quality })
   }
   return new Promise((res, rej) => {
-    canvas.toBlob(
+    ;(canvas as HTMLCanvasElement).toBlob(
       (b) => (b ? res(b) : rej(new Error("toBlob failed"))),
       format,
       quality
@@ -312,9 +388,11 @@ export function canvasToBlob(canvas, format = "image/png", quality = 0.95) {
   })
 }
 
-/** Preview scale: sharp glyphs without giant bitmaps (zoom-out stays clean). */
-export function previewScaleFor(sourceW, sourceH, options) {
-  // ~1200–1600px is enough for screen preview; export still goes 4K/8K
+export function previewScaleFor(
+  sourceW: number,
+  sourceH: number,
+  options: AsciiOptionsInput
+) {
   const targetW = Math.min(1600, Math.max(1100, Math.round(sourceW)))
   return scaleForTargetWidth(sourceW, sourceH, options, targetW)
 }

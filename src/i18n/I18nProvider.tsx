@@ -1,16 +1,36 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react"
 import { CaretDown } from "@phosphor-icons/react"
 import { Menu, MenuItem, MenuPopup, MenuTrigger } from "@/components/ui/menu"
 import { cn } from "@/lib/utils"
-import { Flag } from "./flags.jsx"
-import { LOCALES, detectLocale, messages } from "./messages.js"
+import { Flag } from "./flags"
+import {
+  LOCALES,
+  detectLocale,
+  messages,
+  type LocaleId,
+} from "./messages"
 
-const I18nContext = createContext(null)
+type I18nContextValue = {
+  locale: LocaleId
+  setLocale: (id: LocaleId) => void
+  t: (key: string, vars?: Record<string, string | number>) => string
+  locales: typeof LOCALES
+}
 
-export function I18nProvider({ children }) {
-  const [locale, setLocaleState] = useState(() => detectLocale())
+const I18nContext = createContext<I18nContextValue | null>(null)
 
-  const setLocale = useCallback((id) => {
+export function I18nProvider({ children }: { children: ReactNode }) {
+  const [locale, setLocaleState] = useState<LocaleId>(() => detectLocale())
+
+  const setLocale = useCallback((id: LocaleId) => {
     if (!messages[id]) return
     setLocaleState(id)
     try {
@@ -25,7 +45,7 @@ export function I18nProvider({ children }) {
   }, [locale])
 
   const t = useCallback(
-    (key, vars) => {
+    (key: string, vars?: Record<string, string | number>) => {
       const table = messages[locale] || messages.en
       let str = table[key] ?? messages.en[key] ?? key
       if (vars) {
@@ -52,7 +72,7 @@ export function useI18n() {
   return ctx
 }
 
-export function LanguageSelect({ className }) {
+export function LanguageSelect({ className }: { className?: string }) {
   const { locale, setLocale, locales, t } = useI18n()
   const current = locales.find((l) => l.id === locale) ?? locales[0]
 

@@ -1,9 +1,21 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import { CopySimple, DownloadSimple, X } from "@phosphor-icons/react"
-import { EXPORT_FORMATS, EXPORT_PRESETS, exportSize, scaleForPreset } from "@/lib/export.js"
-import { renderAsciiToUrl } from "@/hooks/useAsciiRender.js"
-import { useI18n } from "@/i18n/I18nProvider.jsx"
+import { EXPORT_FORMATS, EXPORT_PRESETS, exportSize, scaleForPreset } from "@/lib/export"
+import { renderAsciiToUrl } from "@/hooks/useAsciiRender"
+import { useI18n } from "@/i18n/I18nProvider"
+import type { AsciiOptions } from "@/lib/asciiEngine"
+// opts from App is fully populated
+import type { ToastType } from "@/components/Toast"
 import { cn } from "@/lib/utils"
+
+type ExportPanelProps = {
+  open: boolean
+  onClose: () => void
+  sourceCanvas: HTMLCanvasElement
+  opts: AsciiOptions
+  fileName: string
+  onSaved?: (message: string, type?: ToastType) => void
+}
 
 export function ExportPanel({
   open,
@@ -12,7 +24,7 @@ export function ExportPanel({
   opts,
   fileName,
   onSaved,
-}) {
+}: ExportPanelProps) {
   const { t } = useI18n()
   const [formatId, setFormatId] = useState("png")
   const [presetId, setPresetId] = useState("4k")
@@ -64,7 +76,6 @@ export function ExportPanel({
     }
     setExporting(true)
     try {
-      // Clipboard image write is most reliable as PNG
       const url = await renderAsciiToUrl(
         sourceCanvas,
         { ...opts, scale },

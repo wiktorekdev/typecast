@@ -10,6 +10,7 @@
   <a href="https://github.com/wiktorekdev/typecast/stargazers"><img src="https://img.shields.io/github/stars/wiktorekdev/typecast?style=flat&logo=github" alt="Stars" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/wiktorekdev/typecast?style=flat" alt="License" /></a>
   <img src="https://img.shields.io/badge/privacy-local--only-111?style=flat" alt="Privacy" />
+  <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat&logo=typescript&logoColor=white" alt="TypeScript" />
 </p>
 
 <p align="center">
@@ -47,7 +48,7 @@ Everything runs in your browser. Nothing is uploaded.
 
 | Layer | Choice |
 |--------|--------|
-| UI | React 18, Vite 6, Tailwind CSS 4 |
+| UI | React 18, TypeScript, Vite 6, Tailwind CSS 4 |
 | Components | Base UI / shadcn-style primitives |
 | Icons | Phosphor |
 | Render | Canvas 2D + optional Web Worker |

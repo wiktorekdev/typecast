@@ -1,13 +1,11 @@
-"use client";;
+// @ts-nocheck
 import { Switch as SwitchPrimitive } from "@base-ui/react/switch";
 import { cn } from "@/lib/utils";
 
-export function Switch(
-  {
+export function Switch({
     className,
     ...props
-  }
-) {
+  }: any) {
   return (
     <SwitchPrimitive.Root
       className={cn(

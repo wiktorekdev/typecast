@@ -7,9 +7,13 @@ export const LOCALES = [
   { id: "es", label: "Español", short: "ES", flag: "es" },
   { id: "fr", label: "Français", short: "FR", flag: "fr" },
   { id: "uk", label: "Українська", short: "UK", flag: "ua" },
-]
+] as const
 
-export const messages = {
+export type LocaleId = (typeof LOCALES)[number]["id"]
+export type FlagCode = (typeof LOCALES)[number]["flag"]
+export type MessageTable = Record<string, string>
+
+export const messages: Record<LocaleId, MessageTable> = {
   en: {
     brand: "Typecast",
     rendering: "Rendering…",
@@ -527,15 +531,19 @@ export const messages = {
   },
 }
 
-export function detectLocale() {
+function isLocaleId(id: string): id is LocaleId {
+  return id in messages
+}
+
+export function detectLocale(): LocaleId {
   try {
     const saved = localStorage.getItem("typecast-lang")
-    if (saved && messages[saved]) return saved
+    if (saved && isLocaleId(saved)) return saved
   } catch {
     /* ignore */
   }
   const nav = (typeof navigator !== "undefined" && navigator.language) || "en"
   const base = nav.slice(0, 2).toLowerCase()
-  if (messages[base]) return base
+  if (isLocaleId(base)) return base
   return "en"
 }

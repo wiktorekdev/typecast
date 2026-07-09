@@ -1,13 +1,13 @@
-"use client";;
+// @ts-nocheck
 import { mergeProps } from "@base-ui/react/merge-props";
 import { Select as SelectPrimitive } from "@base-ui/react/select";
 import { useRender } from "@base-ui/react/use-render";
 import { cva } from "class-variance-authority";
 import {
-  ChevronDownIcon,
-  ChevronsUpDownIcon,
-  ChevronUpIcon,
-} from "lucide-react";
+  CaretDown,
+  CaretUp,
+  CaretUpDown,
+} from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 export const Select = SelectPrimitive.Root;
@@ -30,15 +30,13 @@ export const selectTriggerVariants = cva(
 
 export const selectTriggerIconClassName = "-me-1 size-4.5 opacity-80 sm:size-4";
 
-export function SelectButton(
-  {
+export function SelectButton({
     className,
     size,
     render,
     children,
     ...props
-  }
-) {
+  }: any) {
   const typeValue =
     render ? undefined : "button";
 
@@ -48,7 +46,7 @@ export function SelectButton(
         <span className="flex-1 truncate in-data-placeholder:text-muted-foreground/72">
           {children}
         </span>
-        <ChevronsUpDownIcon className={selectTriggerIconClassName} />
+        <CaretUpDown className={selectTriggerIconClassName} weight="bold" />
       </>
     ),
     className: cn(selectTriggerVariants({ size }), "min-w-0", className),
@@ -63,14 +61,12 @@ export function SelectButton(
   });
 }
 
-export function SelectTrigger(
-  {
+export function SelectTrigger({
     className,
     size = "default",
     children,
     ...props
-  }
-) {
+  }: any) {
   return (
     <SelectPrimitive.Trigger
       className={cn(selectTriggerVariants({ size }), className)}
@@ -78,18 +74,16 @@ export function SelectTrigger(
       {...props}>
       {children}
       <SelectPrimitive.Icon data-slot="select-icon">
-        <ChevronsUpDownIcon className={selectTriggerIconClassName} />
+        <CaretUpDown className={selectTriggerIconClassName} weight="bold" />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   );
 }
 
-export function SelectValue(
-  {
+export function SelectValue({
     className,
     ...props
-  }
-) {
+  }: any) {
   return (
     <SelectPrimitive.Value
       className={cn("flex-1 truncate data-placeholder:text-muted-foreground", className)}
@@ -98,8 +92,7 @@ export function SelectValue(
   );
 }
 
-export function SelectPopup(
-  {
+export function SelectPopup({
     className,
     children,
     side = "bottom",
@@ -110,8 +103,7 @@ export function SelectPopup(
     anchor,
     portalProps,
     ...props
-  }
-) {
+  }: any) {
   return (
     <SelectPrimitive.Portal {...portalProps}>
       <SelectPrimitive.Positioner
@@ -130,7 +122,7 @@ export function SelectPopup(
           <SelectPrimitive.ScrollUpArrow
             className="top-0 z-50 flex h-6 w-full cursor-default items-center justify-center before:pointer-events-none before:absolute before:inset-x-px before:top-px before:h-[200%] before:rounded-t-[calc(var(--radius-lg)-1px)] before:bg-linear-to-b before:from-50% before:from-popover"
             data-slot="select-scroll-up-arrow">
-            <ChevronUpIcon className="relative size-4.5 sm:size-4" />
+            <CaretUp className="relative size-4.5 sm:size-4" weight="bold" />
           </SelectPrimitive.ScrollUpArrow>
           <div
             className="relative h-full min-w-(--anchor-width) rounded-lg border bg-popover not-dark:bg-clip-padding shadow-lg/5 before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-lg)-1px)] before:shadow-[0_1px_--theme(--color-black/4%)] dark:before:shadow-[0_-1px_--theme(--color-white/6%)]">
@@ -143,7 +135,7 @@ export function SelectPopup(
           <SelectPrimitive.ScrollDownArrow
             className="bottom-0 z-50 flex h-6 w-full cursor-default items-center justify-center before:pointer-events-none before:absolute before:inset-x-px before:bottom-px before:h-[200%] before:rounded-b-[calc(var(--radius-lg)-1px)] before:bg-linear-to-t before:from-50% before:from-popover"
             data-slot="select-scroll-down-arrow">
-            <ChevronDownIcon className="relative size-4.5 sm:size-4" />
+            <CaretDown className="relative size-4.5 sm:size-4" weight="bold" />
           </SelectPrimitive.ScrollDownArrow>
         </SelectPrimitive.Popup>
       </SelectPrimitive.Positioner>
@@ -151,13 +143,11 @@ export function SelectPopup(
   );
 }
 
-export function SelectItem(
-  {
+export function SelectItem({
     className,
     children,
     ...props
-  }
-) {
+  }: any) {
   return (
     <SelectPrimitive.Item
       className={cn(
@@ -188,12 +178,10 @@ export function SelectItem(
   );
 }
 
-export function SelectSeparator(
-  {
+export function SelectSeparator({
     className,
     ...props
-  }
-) {
+  }: any) {
   return (
     <SelectPrimitive.Separator
       className={cn("mx-2 my-1 h-px bg-border", className)}
@@ -202,16 +190,14 @@ export function SelectSeparator(
   );
 }
 
-export function SelectGroup(props) {
+export function SelectGroup(props: any) {
   return <SelectPrimitive.Group data-slot="select-group" {...props} />;
 }
 
-export function SelectLabel(
-  {
+export function SelectLabel({
     className,
     ...props
-  }
-) {
+  }: any) {
   return (
     <SelectPrimitive.Label
       className={cn(
@@ -223,7 +209,7 @@ export function SelectLabel(
   );
 }
 
-export function SelectGroupLabel(props) {
+export function SelectGroupLabel(props: any) {
   return (
     <SelectPrimitive.GroupLabel
       className="px-2 py-1.5 font-medium text-muted-foreground text-xs"

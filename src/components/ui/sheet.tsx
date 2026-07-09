@@ -1,8 +1,8 @@
-"use client";;
+// @ts-nocheck
 import { Dialog as SheetPrimitive } from "@base-ui/react/dialog";
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
-import { XIcon } from "lucide-react";
+import { X } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -11,20 +11,18 @@ export const Sheet = SheetPrimitive.Root;
 
 export const SheetPortal = SheetPrimitive.Portal;
 
-export function SheetTrigger(props) {
+export function SheetTrigger(props: any) {
   return <SheetPrimitive.Trigger data-slot="sheet-trigger" {...props} />;
 }
 
-export function SheetClose(props) {
+export function SheetClose(props: any) {
   return <SheetPrimitive.Close data-slot="sheet-close" {...props} />;
 }
 
-export function SheetBackdrop(
-  {
+export function SheetBackdrop({
     className,
     ...props
-  }
-) {
+  }: any) {
   return (
     <SheetPrimitive.Backdrop
       className={cn(
@@ -36,14 +34,12 @@ export function SheetBackdrop(
   );
 }
 
-export function SheetViewport(
-  {
+export function SheetViewport({
     className,
     side,
     variant = "default",
     ...props
-  }
-) {
+  }: any) {
   return (
     <SheetPrimitive.Viewport
       className={cn(
@@ -60,8 +56,7 @@ export function SheetViewport(
   );
 }
 
-export function SheetPopup(
-  {
+export function SheetPopup({
     className,
     children,
     showCloseButton = true,
@@ -70,8 +65,7 @@ export function SheetPopup(
     closeProps,
     portalProps,
     ...props
-  }
-) {
+  }: any) {
   return (
     <SheetPortal {...portalProps}>
       <SheetBackdrop />
@@ -100,7 +94,7 @@ export function SheetPopup(
               className="absolute end-2 top-2"
               render={<Button size="icon" variant="ghost" />}
               {...closeProps}>
-              <XIcon />
+              <X weight="bold" className="size-4" />
             </SheetPrimitive.Close>
           )}
         </SheetPrimitive.Popup>
@@ -109,13 +103,11 @@ export function SheetPopup(
   );
 }
 
-export function SheetHeader(
-  {
+export function SheetHeader({
     className,
     render,
     ...props
-  }
-) {
+  }: any) {
   const defaultProps = {
     className: cn(
       "flex flex-col gap-2 p-6 in-[[data-slot=sheet-popup]:has([data-slot=sheet-panel])]:pb-3 max-sm:pb-4",
@@ -131,14 +123,12 @@ export function SheetHeader(
   });
 }
 
-export function SheetFooter(
-  {
+export function SheetFooter({
     className,
     variant = "default",
     render,
     ...props
-  }
-) {
+  }: any) {
   const defaultProps = {
     className: cn(
       "flex flex-col-reverse gap-2 px-6 sm:flex-row sm:justify-end",
@@ -157,12 +147,10 @@ export function SheetFooter(
   });
 }
 
-export function SheetTitle(
-  {
+export function SheetTitle({
     className,
     ...props
-  }
-) {
+  }: any) {
   return (
     <SheetPrimitive.Title
       className={cn("font-heading font-semibold text-xl leading-none", className)}
@@ -171,12 +159,10 @@ export function SheetTitle(
   );
 }
 
-export function SheetDescription(
-  {
+export function SheetDescription({
     className,
     ...props
-  }
-) {
+  }: any) {
   return (
     <SheetPrimitive.Description
       className={cn("text-muted-foreground text-sm", className)}
@@ -185,14 +171,12 @@ export function SheetDescription(
   );
 }
 
-export function SheetPanel(
-  {
+export function SheetPanel({
     className,
     scrollFade = true,
     render,
     ...props
-  }
-) {
+  }: any) {
   const defaultProps = {
     className: cn(
       "p-6 in-[[data-slot=sheet-popup]:has([data-slot=sheet-header])]:pt-1 in-[[data-slot=sheet-popup]:has([data-slot=sheet-footer]:not(.border-t))]:pb-1",

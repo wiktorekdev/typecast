@@ -1,6 +1,6 @@
-"use client";;
+// @ts-nocheck
 import { Menu as MenuPrimitive } from "@base-ui/react/menu";
-import { ChevronRightIcon } from "lucide-react";
+import { CaretRight } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 export const MenuCreateHandle =
@@ -10,13 +10,11 @@ export const Menu = MenuPrimitive.Root;
 
 export const MenuPortal = MenuPrimitive.Portal;
 
-export function MenuTrigger(
-  {
+export function MenuTrigger({
     className,
     children,
     ...props
-  }
-) {
+  }: any) {
   return (
     <MenuPrimitive.Trigger className={className} data-slot="menu-trigger" {...props}>
       {children}
@@ -24,8 +22,7 @@ export function MenuTrigger(
   );
 }
 
-export function MenuPopup(
-  {
+export function MenuPopup({
     children,
     className,
     sideOffset = 4,
@@ -35,8 +32,7 @@ export function MenuPopup(
     anchor,
     portalProps,
     ...props
-  }
-) {
+  }: any) {
   return (
     <MenuPortal {...portalProps}>
       <MenuPrimitive.Positioner
@@ -63,18 +59,16 @@ export function MenuPopup(
   );
 }
 
-export function MenuGroup(props) {
+export function MenuGroup(props: any) {
   return <MenuPrimitive.Group data-slot="menu-group" {...props} />;
 }
 
-export function MenuItem(
-  {
+export function MenuItem({
     className,
     inset,
     variant = "default",
     ...props
-  }
-) {
+  }: any) {
   return (
     <MenuPrimitive.Item
       className={cn(
@@ -88,15 +82,13 @@ export function MenuItem(
   );
 }
 
-export function MenuCheckboxItem(
-  {
+export function MenuCheckboxItem({
     className,
     children,
     checked,
     variant = "default",
     ...props
-  }
-) {
+  }: any) {
   return (
     <MenuPrimitive.CheckboxItem
       checked={checked}
@@ -143,17 +135,15 @@ export function MenuCheckboxItem(
   );
 }
 
-export function MenuRadioGroup(props) {
+export function MenuRadioGroup(props: any) {
   return <MenuPrimitive.RadioGroup data-slot="menu-radio-group" {...props} />;
 }
 
-export function MenuRadioItem(
-  {
+export function MenuRadioItem({
     className,
     children,
     ...props
-  }
-) {
+  }: any) {
   return (
     <MenuPrimitive.RadioItem
       className={cn(
@@ -182,13 +172,11 @@ export function MenuRadioItem(
   );
 }
 
-export function MenuGroupLabel(
-  {
+export function MenuGroupLabel({
     className,
     inset,
     ...props
-  }
-) {
+  }: any) {
   return (
     <MenuPrimitive.GroupLabel
       className={cn(
@@ -201,12 +189,10 @@ export function MenuGroupLabel(
   );
 }
 
-export function MenuSeparator(
-  {
+export function MenuSeparator({
     className,
     ...props
-  }
-) {
+  }: any) {
   return (
     <MenuPrimitive.Separator
       className={cn("mx-2 my-1 h-px bg-border", className)}
@@ -215,12 +201,10 @@ export function MenuSeparator(
   );
 }
 
-export function MenuShortcut(
-  {
+export function MenuShortcut({
     className,
     ...props
-  }
-) {
+  }: any) {
   return (
     <kbd
       className={cn(
@@ -232,18 +216,16 @@ export function MenuShortcut(
   );
 }
 
-export function MenuSub(props) {
+export function MenuSub(props: any) {
   return <MenuPrimitive.SubmenuRoot data-slot="menu-sub" {...props} />;
 }
 
-export function MenuSubTrigger(
-  {
+export function MenuSubTrigger({
     className,
     inset,
     children,
     ...props
-  }
-) {
+  }: any) {
   return (
     <MenuPrimitive.SubmenuTrigger
       className={cn(
@@ -254,20 +236,18 @@ export function MenuSubTrigger(
       data-slot="menu-sub-trigger"
       {...props}>
       {children}
-      <ChevronRightIcon className="ms-auto -me-0.5 opacity-80" />
+      <CaretRight className="ms-auto -me-0.5 size-4 opacity-80" weight="bold" />
     </MenuPrimitive.SubmenuTrigger>
   );
 }
 
-export function MenuSubPopup(
-  {
+export function MenuSubPopup({
     className,
     sideOffset = 0,
     alignOffset,
     align = "start",
     ...props
-  }
-) {
+  }: any) {
   const defaultAlignOffset = align !== "center" ? -5 : undefined;
 
   return (

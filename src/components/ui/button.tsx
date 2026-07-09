@@ -1,4 +1,4 @@
-"use client";;
+// @ts-nocheck
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { cva } from "class-variance-authority";
@@ -46,8 +46,7 @@ export const buttonVariants = cva(
   }
 );
 
-export function Button(
-  {
+export function Button({
     className,
     variant,
     size,
@@ -56,8 +55,7 @@ export function Button(
     loading = false,
     disabled: disabledProp,
     ...props
-  }
-) {
+  }: any) {
   const isDisabled = Boolean(loading || disabledProp);
   const typeValue =
     render ? undefined : "button";

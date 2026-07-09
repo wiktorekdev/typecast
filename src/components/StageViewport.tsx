@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState, type ReactNode, type PointerEvent as ReactPointerEvent } from "react"
 import {
   CornersOut,
   DownloadSimple,
@@ -7,18 +7,30 @@ import {
   MagnifyingGlassPlus,
   UploadSimple,
 } from "@phosphor-icons/react"
-import { useI18n } from "@/i18n/I18nProvider.jsx"
+import { useI18n } from "@/i18n/I18nProvider"
 import { cn } from "@/lib/utils"
 
 const MIN_VIEW = 0.15
 const MAX_VIEW = 8
 const ZOOM_STEP = 1.12
 
-function clampView(z) {
+function clampView(z: number) {
   return Math.min(MAX_VIEW, Math.max(MIN_VIEW, z))
 }
 
-function FloatingBarButton({ onClick, disabled, title, children, className }) {
+function FloatingBarButton({
+  onClick,
+  disabled,
+  title,
+  children,
+  className,
+}: {
+  onClick?: () => void
+  disabled?: boolean
+  title?: string
+  children: ReactNode
+  className?: string
+}) {
   return (
     <button
       type="button"
@@ -52,10 +64,20 @@ export function StageViewport({
   exportOpen,
   onReplace,
   hasImage,
+}: {
+  previewUrl: string | null
+  sourceUrl: string | null
+  bgColor: string
+  rendering: boolean
+  fitKey: string
+  onOpenExport?: () => void
+  exportOpen: boolean
+  onReplace?: () => void
+  hasImage: boolean
 }) {
   const { t } = useI18n()
-  const viewportRef = useRef(null)
-  const imgRef = useRef(null)
+  const viewportRef = useRef<HTMLDivElement | null>(null)
+  const imgRef = useRef<HTMLImageElement | null>(null)
   const [viewZoom, setViewZoom] = useState(1)
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const [fitScale, setFitScale] = useState(1)
@@ -63,7 +85,7 @@ export function StageViewport({
   const [dragging, setDragging] = useState(false)
   const [spaceHeld, setSpaceHeld] = useState(false)
   const [comparing, setComparing] = useState(false)
-  const dragStart = useRef(null)
+  const dragStart = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null)
   const naturalSize = useRef({ w: 0, h: 0 })
   const viewZoomRef = useRef(viewZoom)
   const panRef = useRef(pan)
@@ -109,8 +131,7 @@ export function StageViewport({
     setPan({ x: 0, y: 0 })
   }, [computeFitScale])
 
-  const onImageLoad = useCallback(
-    (e) => {
+  const onImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
       const w = e.currentTarget.naturalWidth
       const h = e.currentTarget.naturalHeight
       naturalSize.current = { w, h }
@@ -162,7 +183,7 @@ export function StageViewport({
     return () => ro.disconnect()
   }, [computeFitScale, hasImage])
 
-  const zoomAt = useCallback((nextView, clientX, clientY) => {
+  const zoomAt = useCallback((nextView: number, clientX: number, clientY: number) => {
     const vp = viewportRef.current
     const prev = viewZoomRef.current
     const next = clampView(nextView)
@@ -182,8 +203,7 @@ export function StageViewport({
     })
   }, [])
 
-  const zoomBy = useCallback(
-    (factor, clientX, clientY) => {
+  const zoomBy = useCallback((factor: number, clientX?: number, clientY?: number) => {
       const vp = viewportRef.current
       if (!vp) {
         setViewZoom((z) => clampView(z * factor))
@@ -201,7 +221,7 @@ export function StageViewport({
     const vp = viewportRef.current
     if (!vp) return
 
-    const onWheel = (e) => {
+    const onWheel = (e: WheelEvent) => {
       e.preventDefault()
       const intensity = Math.min(Math.abs(e.deltaY) / 100, 2.5)
       const factor =
@@ -216,12 +236,12 @@ export function StageViewport({
   }, [zoomAt])
 
   useEffect(() => {
-    const isTyping = (el) =>
+    const isTyping = (el: EventTarget | null) =>
       el instanceof HTMLInputElement ||
       el instanceof HTMLTextAreaElement ||
       el instanceof HTMLSelectElement
 
-    const onKeyDown = (e) => {
+    const onKeyDown = (e: KeyboardEvent) => {
       if (isTyping(e.target)) return
       if (e.code === "Space") {
         e.preventDefault()
@@ -255,7 +275,7 @@ export function StageViewport({
         onOpenExport?.()
       }
     }
-    const onKeyUp = (e) => {
+    const onKeyUp = (e: KeyboardEvent) => {
       if (e.code === "Space") setSpaceHeld(false)
       if (e.key === "c" || e.key === "C") setComparing(false)
     }
@@ -273,7 +293,7 @@ export function StageViewport({
     }
   }, [zoomBy, resetToFit, onOpenExport])
 
-  const onPointerDown = (e) => {
+  const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (e.button !== 0 && e.button !== 1) return
     e.currentTarget.setPointerCapture(e.pointerId)
     setDragging(true)
@@ -285,7 +305,7 @@ export function StageViewport({
     }
   }
 
-  const onPointerMove = (e) => {
+  const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (!dragStart.current) return
     setPan({
       x: Math.round(dragStart.current.panX + (e.clientX - dragStart.current.x)),
@@ -293,7 +313,7 @@ export function StageViewport({
     })
   }
 
-  const onPointerUp = (e) => {
+  const onPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
     dragStart.current = null
     setDragging(false)
     try {

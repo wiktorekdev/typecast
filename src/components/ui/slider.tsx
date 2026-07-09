@@ -1,11 +1,10 @@
-"use client";
+// @ts-nocheck
 
 import { Slider as SliderPrimitive } from "@base-ui/react/slider";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-export function Slider(
-  {
+export function Slider({
     className,
     children,
     defaultValue,
@@ -13,8 +12,7 @@ export function Slider(
     min = 0,
     max = 100,
     ...props
-  }
-) {
+  }: any) {
   const _values = React.useMemo(() => {
     if (value !== undefined) {
       return Array.isArray(value) ? value : [value];
@@ -57,12 +55,10 @@ export function Slider(
   );
 }
 
-export function SliderValue(
-  {
+export function SliderValue({
     className,
     ...props
-  }
-) {
+  }: any) {
   return (
     <SliderPrimitive.Value
       className={cn("flex justify-end text-sm", className)}

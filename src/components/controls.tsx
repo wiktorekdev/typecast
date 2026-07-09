@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import {
   Select,
   SelectGroup,
@@ -15,8 +15,24 @@ const HEX_RE = /^#[0-9a-f]{6}$/i
 const fieldClass =
   "box-border h-7 shrink-0 rounded-lg border border-zinc-800 bg-zinc-900/80 text-center font-mono text-[12px] tabular-nums text-zinc-100 outline-none transition placeholder:text-zinc-600 focus-visible:border-zinc-600 focus-visible:ring-2 focus-visible:ring-zinc-500/40"
 
-export function NumberSlider({ label, value, min, max, step = 1, onChange }) {
-  const format = (next) => {
+type NumberSliderProps = {
+  label: string
+  value: number
+  min: number
+  max: number
+  step?: number
+  onChange: (value: number) => void
+}
+
+export function NumberSlider({
+  label,
+  value,
+  min,
+  max,
+  step = 1,
+  onChange,
+}: NumberSliderProps) {
+  const format = (next: number) => {
     if (step < 0.1) return Number(next).toFixed(2)
     if (step < 1) return Number(next).toFixed(1)
     return String(Math.round(Number(next)))
@@ -29,7 +45,7 @@ export function NumberSlider({ label, value, min, max, step = 1, onChange }) {
     if (!focused) setDraft(format(value))
   }, [value, focused, step])
 
-  const snap = (n) => {
+  const snap = (n: number) => {
     if (!Number.isFinite(n)) return value
     const stepped = Math.round((n - min) / step) * step + min
     const clamped = Math.min(max, Math.max(min, stepped))
@@ -38,7 +54,7 @@ export function NumberSlider({ label, value, min, max, step = 1, onChange }) {
     return Math.round(clamped)
   }
 
-  const commit = (raw) => {
+  const commit = (raw: string) => {
     const parsed = parseFloat(String(raw).replace(",", "."))
     const next = snap(parsed)
     setDraft(format(next))
@@ -91,20 +107,41 @@ export function NumberSlider({ label, value, min, max, step = 1, onChange }) {
         max={max}
         step={step}
         value={value}
-        onValueChange={(next) => onChange(Array.isArray(next) ? next[0] : next)}
+        onValueChange={(next: number | number[]) =>
+          onChange(Array.isArray(next) ? next[0] : next)
+        }
         className="w-full min-w-0"
       />
     </div>
   )
 }
 
-export function OptionSelect({ label, value, onChange, options }) {
+type Option = { value: string; label: string }
+
+type OptionSelectProps = {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  options: Option[]
+}
+
+export function OptionSelect({
+  label,
+  value,
+  onChange,
+  options,
+}: OptionSelectProps) {
   const selected = options.find((option) => option.value === value)
 
   return (
     <div className="flex w-full flex-col gap-2">
       <span className="text-[13px] text-zinc-400">{label}</span>
-      <Select value={value} onValueChange={onChange}>
+      <Select
+        value={value}
+        onValueChange={(next: string | null) => {
+          if (next != null) onChange(next)
+        }}
+      >
         <SelectTrigger className="h-9 min-h-9 w-full min-w-0 rounded-xl border-zinc-800 bg-zinc-900/80 px-3 text-[13px] shadow-none dark:bg-zinc-900/80">
           <SelectValue>{selected?.label}</SelectValue>
         </SelectTrigger>
@@ -122,7 +159,13 @@ export function OptionSelect({ label, value, onChange, options }) {
   )
 }
 
-export function ColorField({ label, value, onChange }) {
+type ColorFieldProps = {
+  label: string
+  value: string
+  onChange: (value: string) => void
+}
+
+export function ColorField({ label, value, onChange }: ColorFieldProps) {
   const safe = HEX_RE.test(value) ? value.toLowerCase() : "#000000"
   const [draft, setDraft] = useState(safe)
 
@@ -130,7 +173,7 @@ export function ColorField({ label, value, onChange }) {
     setDraft(safe)
   }, [safe])
 
-  const commitHex = (raw) => {
+  const commitHex = (raw: string) => {
     let next = raw.trim()
     if (!next.startsWith("#")) next = `#${next}`
     setDraft(next)
@@ -175,7 +218,13 @@ export function ColorField({ label, value, onChange }) {
   )
 }
 
-export function PanelCard({ title, children }) {
+export function PanelCard({
+  title,
+  children,
+}: {
+  title: string
+  children: ReactNode
+}) {
   return (
     <section className="rounded-2xl border border-zinc-800/90 bg-zinc-950/40 p-3.5">
       <h2 className="mb-3 text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-500">

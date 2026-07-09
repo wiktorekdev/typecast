@@ -1,9 +1,9 @@
-import React from "react"
+import { Fragment, type ReactNode } from "react"
 import { X } from "@phosphor-icons/react"
-import { useI18n } from "@/i18n/I18nProvider.jsx"
+import { useI18n } from "@/i18n/I18nProvider"
 import { cn } from "@/lib/utils"
 
-function Kbd({ children }) {
+function Kbd({ children }: { children: ReactNode }) {
   return (
     <kbd className="inline-flex min-w-7 items-center justify-center rounded-md border border-zinc-700 bg-zinc-900 px-1.5 py-0.5 font-mono text-[11px] text-zinc-200">
       {children}
@@ -11,7 +11,13 @@ function Kbd({ children }) {
   )
 }
 
-export function KeyboardHelp({ open, onClose }) {
+export function KeyboardHelp({
+  open,
+  onClose,
+}: {
+  open: boolean
+  onClose: () => void
+}) {
   const { t } = useI18n()
   if (!open) return null
 
@@ -65,12 +71,12 @@ export function KeyboardHelp({ open, onClose }) {
               <span className="text-[13px] text-zinc-300">{row.label}</span>
               <span className="flex shrink-0 items-center gap-1">
                 {row.keys.map((k, i) => (
-                  <React.Fragment key={`${row.label}-${k}-${i}`}>
+                  <Fragment key={`${row.label}-${k}-${i}`}>
                     {i > 0 && (
                       <span className="text-[11px] text-zinc-600">+</span>
                     )}
                     <Kbd>{k}</Kbd>
-                  </React.Fragment>
+                  </Fragment>
                 ))}
               </span>
             </li>

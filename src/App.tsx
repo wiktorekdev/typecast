@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from "react"
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+} from "react"
 import { useDropzone } from "react-dropzone"
 import { Coffee, GithubLogo, List, Question } from "@phosphor-icons/react"
 import {
@@ -7,18 +13,19 @@ import {
   CHAR_SETS,
   FONTS,
   COLOR_MODES,
-} from "@/lib/asciiEngine.js"
-import { renderAsciiToUrl } from "@/hooks/useAsciiRender.js"
-import { StageViewport } from "@/components/StageViewport.jsx"
-import { ExportPanel } from "@/components/ExportPanel.jsx"
-import { KeyboardHelp } from "@/components/KeyboardHelp.jsx"
-import { useToast } from "@/components/Toast.jsx"
+  type AsciiOptions,
+} from "@/lib/asciiEngine"
+import { renderAsciiToUrl } from "@/hooks/useAsciiRender"
+import { StageViewport } from "@/components/StageViewport"
+import { ExportPanel } from "@/components/ExportPanel"
+import { KeyboardHelp } from "@/components/KeyboardHelp"
+import { showToast, type ToastType } from "@/components/Toast"
 import {
   NumberSlider,
   OptionSelect,
   ColorField,
   PanelCard,
-} from "@/components/controls.jsx"
+} from "@/components/controls"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import {
@@ -28,11 +35,11 @@ import {
   SheetTitle,
   SheetPanel,
 } from "@/components/ui/sheet"
-import { useMediaQuery } from "@/hooks/use-media-query.js"
-import { LanguageSelect, useI18n } from "@/i18n/I18nProvider.jsx"
+import { useIsNarrow } from "@/hooks/use-media-query"
+import { LanguageSelect, useI18n } from "@/i18n/I18nProvider"
 import { cn } from "@/lib/utils"
 
-const DEFAULT_OPTS = {
+const DEFAULT_OPTS: AsciiOptions = {
   cols: 160,
   charSet: "binary",
   customChars: "",
@@ -54,7 +61,7 @@ const DEFAULT_OPTS = {
 const GITHUB_URL = "https://github.com/wiktorekdev/typecast"
 const KOFI_URL = "https://ko-fi.com/wiktorekdev"
 
-function SidebarLinks({ t }) {
+function SidebarLinks({ t }: { t: (key: string) => string }) {
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 p-3">
       <div className="pointer-events-auto flex items-center gap-1 rounded-2xl border border-white/10 bg-zinc-950/90 p-1 shadow-2xl shadow-black/40 backdrop-blur-md">
@@ -84,7 +91,15 @@ function SidebarLinks({ t }) {
   )
 }
 
-function SettingsPanels({ opts, set, t }) {
+function SettingsPanels({
+  opts,
+  set,
+  t,
+}: {
+  opts: AsciiOptions
+  set: (key: keyof AsciiOptions, val: AsciiOptions[keyof AsciiOptions]) => void
+  t: (key: string) => string
+}) {
   return (
     <div className="relative flex h-full min-h-0 flex-col">
       <div className="flex-1 space-y-3 overflow-y-auto p-3 pb-20">
@@ -107,7 +122,9 @@ function SettingsPanels({ opts, set, t }) {
               type="text"
               value={opts.customChars}
               placeholder="01"
-              onChange={(e) => set("customChars", e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                set("customChars", e.target.value)
+              }
               className="h-9 min-h-9 rounded-xl border-zinc-800 bg-zinc-900/80 px-3 font-mono text-[13px] shadow-none dark:bg-zinc-900/80"
             />
           </div>
@@ -217,7 +234,7 @@ function SettingsPanels({ opts, set, t }) {
           <span className="text-[13px] text-zinc-400">{t("invert")}</span>
           <Switch
             checked={opts.invert}
-            onCheckedChange={(checked) => set("invert", checked)}
+            onCheckedChange={(checked: boolean) => set("invert", checked)}
           />
         </div>
       </PanelCard>
@@ -229,24 +246,23 @@ function SettingsPanels({ opts, set, t }) {
 
 export default function App() {
   const { t } = useI18n()
-  const { showToast } = useToast()
-  const isNarrow = useMediaQuery("max-lg")
-  const [opts, setOpts] = useState(DEFAULT_OPTS)
-  const [sourceCanvas, setSourceCanvas] = useState(null)
-  const [sourceUrl, setSourceUrl] = useState(null)
+  const isNarrow = useIsNarrow()
+  const [opts, setOpts] = useState<AsciiOptions>(DEFAULT_OPTS)
+  const [sourceCanvas, setSourceCanvas] = useState<HTMLCanvasElement | null>(null)
+  const [sourceUrl, setSourceUrl] = useState<string | null>(null)
   const [fileName, setFileName] = useState("")
-  const [previewUrl, setPreviewUrl] = useState(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [rendering, setRendering] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const previewGen = useRef(0)
 
-  const set = useCallback((key, val) => {
+  const set = useCallback((key: keyof AsciiOptions, val: AsciiOptions[keyof AsciiOptions]) => {
     setOpts((current) => ({ ...current, [key]: val }))
   }, [])
 
-  const handleFile = useCallback(async (file) => {
+  const handleFile = useCallback(async (file: File | null | undefined) => {
     if (!file?.type.startsWith("image/")) return
     try {
       const nextUrl = URL.createObjectURL(file)
@@ -260,7 +276,7 @@ export default function App() {
     } catch {
       showToast(t("loadFailed"), "error")
     }
-  }, [t, showToast, isNarrow])
+  }, [t, isNarrow])
 
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     accept: { "image/*": [] },
@@ -309,10 +325,10 @@ export default function App() {
     }, 140)
 
     return () => window.clearTimeout(timer)
-  }, [opts, sourceCanvas, t, showToast])
+  }, [opts, sourceCanvas, t])
 
   useEffect(() => {
-    const onPaste = (event) => {
+    const onPaste = (event: ClipboardEvent) => {
       for (const item of event.clipboardData?.items ?? []) {
         if (item.type.startsWith("image/")) {
           event.preventDefault()
@@ -326,13 +342,13 @@ export default function App() {
   }, [handleFile])
 
   useEffect(() => {
-    const isTyping = (el) =>
+    const isTyping = (el: EventTarget | null) =>
       el instanceof HTMLInputElement ||
       el instanceof HTMLTextAreaElement ||
       el instanceof HTMLSelectElement ||
-      el?.isContentEditable
+      (el instanceof HTMLElement && el.isContentEditable)
 
-    const onKeyDown = (e) => {
+    const onKeyDown = (e: KeyboardEvent) => {
       if (isTyping(e.target)) return
 
       if (e.key === "?" || (e.shiftKey && e.key === "/")) {
@@ -364,13 +380,10 @@ export default function App() {
     if (!isNarrow) setSettingsOpen(false)
   }, [isNarrow])
 
-  const onExportMessage = useCallback(
-    (msg, type = "success") => {
-      if (!msg) return
-      showToast(msg, type)
-    },
-    [showToast]
-  )
+  const onExportMessage = useCallback((msg: string, type: ToastType = "success") => {
+    if (!msg) return
+    showToast(msg, type)
+  }, [])
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-zinc-950 text-zinc-50">
