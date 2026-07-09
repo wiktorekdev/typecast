@@ -179,7 +179,7 @@ export default function App() {
                     Drop an image here
                   </span>
                   <span className="text-[13px] text-zinc-500">
-                    Paste or choose a file
+                    Binary · ASCII · characters · export HD–8K
                   </span>
                 </div>
                 <span className="mt-1 inline-flex h-9 items-center rounded-full bg-white px-4 text-[13px] font-semibold text-zinc-950">
