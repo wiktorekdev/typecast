@@ -5,7 +5,8 @@
 **Turn any image into high-res type art.**  
 Drop a photo, tweak characters and color, export HD → 8K PNG, JPEG, or WebP.
 
-**Repo:** [github.com/wiktorekdev/typecast](https://github.com/wiktorekdev/typecast)
+**Repo:** [github.com/wiktorekdev/typecast](https://github.com/wiktorekdev/typecast)  
+**Live:** [ascii-converter-six.vercel.app](https://ascii-converter-six.vercel.app)
 
 <p align="center">
   <a href="#features">Features</a>
