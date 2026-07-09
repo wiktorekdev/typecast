@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { DownloadSimple, X } from "@phosphor-icons/react"
+import { CopySimple, DownloadSimple, X } from "@phosphor-icons/react"
 import { EXPORT_FORMATS, EXPORT_PRESETS, exportSize, scaleForPreset } from "@/lib/export.js"
 import { renderAsciiToUrl } from "@/hooks/useAsciiRender.js"
 import { useI18n } from "@/i18n/I18nProvider.jsx"
@@ -23,25 +23,62 @@ export function ExportPanel({
   const scale = scaleForPreset(sourceCanvas, opts, preset.targetW)
   const size = exportSize(sourceCanvas, opts, scale)
 
+  const renderBlob = async () => {
+    const url = await renderAsciiToUrl(
+      sourceCanvas,
+      { ...opts, scale },
+      { format: format.mime, quality: format.quality ?? 0.95 }
+    )
+    const res = await fetch(url)
+    const blob = await res.blob()
+    URL.revokeObjectURL(url)
+    return blob
+  }
+
   const download = async () => {
     if (!sourceCanvas) return
     setExporting(true)
     try {
-      const url = await renderAsciiToUrl(
-        sourceCanvas,
-        { ...opts, scale },
-        { format: format.mime, quality: format.quality ?? 0.95 }
-      )
+      const blob = await renderBlob()
+      const url = URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
       const base = fileName.replace(/\.[^.]+$/, "") || "typecast"
       a.download = `${base}-typecast-${preset.id}.${format.ext}`
       a.click()
       URL.revokeObjectURL(url)
-      onSaved?.()
+      onSaved?.(t("saved"), "success")
       onClose()
     } catch {
-      onSaved?.(t("exportFailed"))
+      onSaved?.(t("exportFailed"), "error")
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  const copyPng = async () => {
+    if (!sourceCanvas) return
+    if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
+      onSaved?.(t("copyUnsupported"), "error")
+      return
+    }
+    setExporting(true)
+    try {
+      // Clipboard image write is most reliable as PNG
+      const url = await renderAsciiToUrl(
+        sourceCanvas,
+        { ...opts, scale },
+        { format: "image/png", quality: 0.95 }
+      )
+      const res = await fetch(url)
+      const blob = await res.blob()
+      URL.revokeObjectURL(url)
+      await navigator.clipboard.write([
+        new ClipboardItem({ "image/png": blob }),
+      ])
+      onSaved?.(t("copied"), "success")
+    } catch {
+      onSaved?.(t("copyFailed"), "error")
     } finally {
       setExporting(false)
     }
@@ -120,15 +157,26 @@ export function ExportPanel({
             </div>
           </div>
 
-          <button
-            type="button"
-            disabled={exporting || !sourceCanvas}
-            onClick={download}
-            className="flex h-10 w-full items-center justify-center gap-2 rounded-full bg-white text-[13px] font-semibold text-zinc-950 transition hover:bg-zinc-100 disabled:opacity-40"
-          >
-            <DownloadSimple weight="bold" className="size-4" />
-            {exporting ? t("saving") : t("download", { format: format.label })}
-          </button>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              disabled={exporting || !sourceCanvas}
+              onClick={copyPng}
+              className="flex h-10 items-center justify-center gap-2 rounded-full border border-zinc-700 bg-zinc-900 text-[13px] font-semibold text-zinc-100 transition hover:bg-zinc-800 disabled:opacity-40"
+            >
+              <CopySimple weight="bold" className="size-4" />
+              {t("copy")}
+            </button>
+            <button
+              type="button"
+              disabled={exporting || !sourceCanvas}
+              onClick={download}
+              className="flex h-10 items-center justify-center gap-2 rounded-full bg-white text-[13px] font-semibold text-zinc-950 transition hover:bg-zinc-100 disabled:opacity-40"
+            >
+              <DownloadSimple weight="bold" className="size-4" />
+              {exporting ? t("saving") : t("download", { format: format.label })}
+            </button>
+          </div>
         </div>
       </div>
     </div>

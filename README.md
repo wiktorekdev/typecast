@@ -22,7 +22,6 @@
   <img src="https://img.shields.io/badge/privacy-100%25%20local-111?style=flat" alt="Privacy" />
   <img src="https://img.shields.io/github/last-commit/wiktorekdev/typecast?style=flat" alt="Last commit" />
   <img src="https://img.shields.io/badge/language-JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black" alt="JavaScript" />
-  <img src="https://img.shields.io/badge/export-HD%20%7C%202K%20%7C%204K%20%7C%208K-0A0A0A?style=flat" alt="Export sizes" />
 </p>
 
 <p align="center">
@@ -35,6 +34,8 @@
   <a href="#develop">Develop</a>
   ·
   <a href="#deploy">Deploy</a>
+  ·
+  <a href="https://ko-fi.com/wiktorekdev">Ko-fi</a>
 </p>
 
 ---
@@ -104,6 +105,10 @@ Image → sample grid → luminance → chars → canvas → PNG / JPEG / WebP
 ## Privacy
 
 Conversion is **100% local**. No upload API. No account required.
+
+## Support
+
+If Typecast is useful, you can fuel more of it on [Ko-fi](https://ko-fi.com/wiktorekdev).
 
 ## Contributing
 

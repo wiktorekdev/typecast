@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react"
 import {
   CornersOut,
   DownloadSimple,
+  Eye,
   MagnifyingGlassMinus,
   MagnifyingGlassPlus,
   UploadSimple,
@@ -43,6 +44,7 @@ function FloatingBarButton({ onClick, disabled, title, children, className }) {
  */
 export function StageViewport({
   previewUrl,
+  sourceUrl,
   bgColor,
   rendering,
   fitKey,
@@ -60,6 +62,7 @@ export function StageViewport({
   const [imgSize, setImgSize] = useState({ w: 0, h: 0 })
   const [dragging, setDragging] = useState(false)
   const [spaceHeld, setSpaceHeld] = useState(false)
+  const [comparing, setComparing] = useState(false)
   const dragStart = useRef(null)
   const naturalSize = useRef({ w: 0, h: 0 })
   const viewZoomRef = useRef(viewZoom)
@@ -213,14 +216,22 @@ export function StageViewport({
   }, [zoomAt])
 
   useEffect(() => {
+    const isTyping = (el) =>
+      el instanceof HTMLInputElement ||
+      el instanceof HTMLTextAreaElement ||
+      el instanceof HTMLSelectElement
+
     const onKeyDown = (e) => {
-      if (
-        e.code === "Space" &&
-        !(e.target instanceof HTMLInputElement) &&
-        !(e.target instanceof HTMLTextAreaElement)
-      ) {
+      if (isTyping(e.target)) return
+      if (e.code === "Space") {
         e.preventDefault()
         setSpaceHeld(true)
+      }
+      if (e.key === "c" || e.key === "C") {
+        if (!e.metaKey && !e.ctrlKey) {
+          e.preventDefault()
+          setComparing(true)
+        }
       }
       if ((e.metaKey || e.ctrlKey) && (e.key === "=" || e.key === "+")) {
         e.preventDefault()
@@ -236,21 +247,31 @@ export function StageViewport({
       }
       if ((e.metaKey || e.ctrlKey) && e.key === "1") {
         e.preventDefault()
-        // 100% of fitted view
         setViewZoom(1)
         setPan({ x: 0, y: 0 })
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "e") {
+        e.preventDefault()
+        onOpenExport?.()
       }
     }
     const onKeyUp = (e) => {
       if (e.code === "Space") setSpaceHeld(false)
+      if (e.key === "c" || e.key === "C") setComparing(false)
+    }
+    const onBlur = () => {
+      setComparing(false)
+      setSpaceHeld(false)
     }
     window.addEventListener("keydown", onKeyDown)
     window.addEventListener("keyup", onKeyUp)
+    window.addEventListener("blur", onBlur)
     return () => {
       window.removeEventListener("keydown", onKeyDown)
       window.removeEventListener("keyup", onKeyUp)
+      window.removeEventListener("blur", onBlur)
     }
-  }, [zoomBy, resetToFit])
+  }, [zoomBy, resetToFit, onOpenExport])
 
   const onPointerDown = (e) => {
     if (e.button !== 0 && e.button !== 1) return
@@ -310,21 +331,46 @@ export function StageViewport({
             }}
           >
             {previewUrl ? (
-              <img
-                ref={imgRef}
-                src={previewUrl}
-                alt={t("previewAlt")}
-                draggable={false}
-                onLoad={onImageLoad}
-                width={dispW}
-                height={dispH}
-                className="block max-w-none select-none"
+              <div
+                className="relative block max-w-none select-none"
                 style={{
                   width: dispW ? `${dispW}px` : "auto",
                   height: dispH ? `${dispH}px` : "auto",
-                  backgroundColor: bgColor,
-                  imageRendering: enlarge ? "pixelated" : "auto",
+                  backgroundColor: comparing ? "#111" : bgColor,
                 }}
+              >
+                <img
+                  ref={imgRef}
+                  src={previewUrl}
+                  alt={t("previewAlt")}
+                  draggable={false}
+                  onLoad={onImageLoad}
+                  width={dispW}
+                  height={dispH}
+                  className="block max-w-none select-none"
+                  style={{
+                    width: dispW ? `${dispW}px` : "auto",
+                    height: dispH ? `${dispH}px` : "auto",
+                    opacity: comparing ? 0 : 1,
+                    imageRendering: enlarge ? "pixelated" : "auto",
+                  }}
+                />
+                {comparing && sourceUrl && (
+                  <img
+                    src={sourceUrl}
+                    alt=""
+                    draggable={false}
+                    className="absolute inset-0 size-full object-contain"
+                    style={{ imageRendering: "auto" }}
+                  />
+                )}
+              </div>
+            ) : sourceUrl ? (
+              <img
+                src={sourceUrl}
+                alt={t("previewAlt")}
+                draggable={false}
+                className="max-h-[70dvh] max-w-[min(90vw,48rem)] object-contain opacity-40"
               />
             ) : (
               <p className="text-[13px] text-zinc-500">{t("generating")}</p>
@@ -332,9 +378,9 @@ export function StageViewport({
           </div>
         </div>
 
-        {rendering && (
+        {(rendering || comparing) && (
           <span className="pointer-events-none absolute left-4 top-4 rounded-full bg-zinc-950/80 px-3 py-1 text-[12px] text-zinc-400 ring-1 ring-zinc-800">
-            {t("updating")}
+            {comparing ? t("showingOriginal") : t("updating")}
           </span>
         )}
       </div>
@@ -372,6 +418,29 @@ export function StageViewport({
             <CornersOut weight="bold" className="size-4" />
             <span className="hidden sm:inline">{t("fit")}</span>
           </FloatingBarButton>
+
+          {hasImage && sourceUrl && (
+            <button
+              type="button"
+              title={t("helpCompare")}
+              className={cn(
+                "inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition",
+                comparing
+                  ? "bg-white text-zinc-950"
+                  : "text-zinc-200 hover:bg-white/10"
+              )}
+              onPointerDown={(e) => {
+                e.preventDefault()
+                setComparing(true)
+              }}
+              onPointerUp={() => setComparing(false)}
+              onPointerLeave={() => setComparing(false)}
+              onPointerCancel={() => setComparing(false)}
+            >
+              <Eye weight="bold" className="size-4" />
+              <span className="hidden sm:inline">{t("compare")}</span>
+            </button>
+          )}
 
           {hasImage && (
             <>

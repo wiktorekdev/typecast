@@ -100,45 +100,51 @@ export function scaleForTargetWidth(sourceW, sourceH, options, targetW) {
   return Math.min(16, Math.max(0.5, targetW / base.outW))
 }
 
+/** Cap decode size so huge camera photos don't OOM the tab. */
+export const MAX_SOURCE_EDGE = 4096
+
+function resolveChars(charSet, customChars) {
+  if (charSet === "custom") return customChars || "01"
+  return CHAR_SETS[charSet]?.chars || "01"
+}
+
+function pickChar(chars, charSet, adj, row, col) {
+  const useDensity = DENSITY_SETS.has(charSet) || charSet === "custom"
+  if (useDensity && chars.length > 1) {
+    const idx = Math.round(adj * (chars.length - 1))
+    return chars[Math.max(0, Math.min(chars.length - 1, idx))]
+  }
+  if (chars.length === 2) return adj > 0.5 ? chars[1] : chars[0]
+  return chars[cellHash(row, col) % chars.length]
+}
+
 /**
- * Core render. source can be Canvas, OffscreenCanvas, or ImageBitmap.
- * Returns canvas (HTMLCanvasElement or OffscreenCanvas).
+ * Sample source into a character grid (shared by canvas + text export).
+ * Each cell: { ch, r, g, b, adj, rawLum } — ch may be " " for empty.
  */
-export function renderAscii(source, options = {}) {
+export function buildAsciiGrid(source, options = {}) {
   const {
     cols = 160,
     charSet = "binary",
     customChars = "",
-    fontFamily = '"Courier New", monospace',
     fontSize = 8,
-    colorMode = "bw",
-    bgColor = "#000000",
-    fgColor = "#ffffff",
-    tintColor = "#ffffff",
     brightness = 0,
     contrast = 1.4,
-    saturation = 100,
     threshold = 8,
     invert = false,
     charAspect = 0.55,
-    scale = 1,
   } = options
 
   const srcW = source.width
   const srcH = source.height
   if (!srcW || !srcH) throw new Error("Invalid source image")
 
-  const chars =
-    charSet === "custom"
-      ? customChars || "01"
-      : CHAR_SETS[charSet]?.chars || "01"
-
+  const chars = resolveChars(charSet, customChars)
   const charW = fontSize * charAspect
   const charH = fontSize * 1.15
   const aspect = srcH / srcW
   const rows = Math.max(1, Math.round(cols * aspect * (charW / charH)))
 
-  // 1. Sample source → density grid (high-quality downsample)
   const sample = createCanvas(cols, rows)
   const sctx = get2d(sample)
   sctx.imageSmoothingEnabled = true
@@ -146,7 +152,55 @@ export function renderAscii(source, options = {}) {
   sctx.drawImage(source, 0, 0, cols, rows)
   const px = sctx.getImageData(0, 0, cols, rows).data
 
-  // 2. Output canvas
+  const thresholdVal = threshold / 100
+  const grid = []
+
+  for (let r = 0; r < rows; r++) {
+    const line = []
+    for (let c = 0; c < cols; c++) {
+      const i = (r * cols + c) * 4
+      const R = px[i]
+      const G = px[i + 1]
+      const B = px[i + 2]
+
+      const rawLum = (0.2126 * R + 0.7152 * G + 0.0722 * B) / 255
+      let lum = Math.min(1, Math.max(0, rawLum + brightness / 100))
+      let adj = (lum - 0.5) * contrast + 0.5
+      adj = Math.min(1, Math.max(0, adj))
+      if (invert) adj = 1 - adj
+
+      if (adj < thresholdVal) {
+        line.push({ ch: " ", r: R, g: G, b: B, adj, rawLum })
+        continue
+      }
+
+      const ch = pickChar(chars, charSet, adj, r, c) || " "
+      line.push({ ch, r: R, g: G, b: B, adj, rawLum })
+    }
+    grid.push(line)
+  }
+
+  return { cols, rows, charW, charH, grid }
+}
+
+/**
+ * Core render. source can be Canvas, OffscreenCanvas, or ImageBitmap.
+ * Returns canvas (HTMLCanvasElement or OffscreenCanvas).
+ */
+export function renderAscii(source, options = {}) {
+  const {
+    fontFamily = '"Courier New", monospace',
+    fontSize = 8,
+    colorMode = "bw",
+    bgColor = "#000000",
+    fgColor = "#ffffff",
+    tintColor = "#ffffff",
+    saturation = 100,
+    scale = 1,
+  } = options
+
+  const { cols, rows, charW, charH, grid } = buildAsciiGrid(source, options)
+
   const outW = Math.ceil(cols * charW * scale)
   const outH = Math.ceil(rows * charH * scale)
   const out = createCanvas(outW, outH)
@@ -157,50 +211,29 @@ export function renderAscii(source, options = {}) {
   ctx.fillRect(0, 0, outW, outH)
 
   const scaledFontSize = fontSize * scale
-  // slight oversize avoids thin glyph clipping at cell edges
   ctx.font = `${scaledFontSize}px ${fontFamily}`
   ctx.textBaseline = "middle"
   ctx.textAlign = "center"
 
-  const thresholdVal = threshold / 100
-  const useDensity = DENSITY_SETS.has(charSet) || charSet === "custom"
   const tint = hexToRgb(tintColor)
   const cellW = charW * scale
   const cellH = charH * scale
+  const sf = saturation / 100
 
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
-      const i = (r * cols + c) * 4
-      let R = px[i]
-      let G = px[i + 1]
-      let B = px[i + 2]
+      const cell = grid[r][c]
+      if (!cell.ch || cell.ch === " ") continue
 
-      const rawLum = (0.2126 * R + 0.7152 * G + 0.0722 * B) / 255
-      let lum = Math.min(1, Math.max(0, rawLum + brightness / 100))
-      let adj = (lum - 0.5) * contrast + 0.5
-      adj = Math.min(1, Math.max(0, adj))
-      if (invert) adj = 1 - adj
-
-      if (adj < thresholdVal) continue
-
-      let ch
-      if (useDensity && chars.length > 1) {
-        const idx = Math.round(adj * (chars.length - 1))
-        ch = chars[Math.max(0, Math.min(chars.length - 1, idx))]
-      } else if (chars.length === 2) {
-        // binary-like: pick by threshold mid
-        ch = adj > 0.5 ? chars[1] : chars[0]
-      } else {
-        ch = chars[cellHash(r, c) % chars.length]
-      }
-
-      if (!ch || ch === " ") continue
-
+      let R = cell.r
+      let G = cell.g
+      let B = cell.b
       const gray = 0.2126 * R + 0.7152 * G + 0.0722 * B
-      const sf = saturation / 100
       R = Math.min(255, Math.max(0, gray + sf * (R - gray)))
       G = Math.min(255, Math.max(0, gray + sf * (G - gray)))
       B = Math.min(255, Math.max(0, gray + sf * (B - gray)))
+
+      const { adj, rawLum } = cell
 
       switch (colorMode) {
         case "colored":
@@ -226,10 +259,9 @@ export function renderAscii(source, options = {}) {
           ctx.fillStyle = fgColor
       }
 
-      // integer centers = sharper glyphs, less subpixel blur
       const x = Math.round(c * cellW + cellW * 0.5)
       const y = Math.round(r * cellH + cellH * 0.5)
-      ctx.fillText(ch, x, y)
+      ctx.fillText(cell.ch, x, y)
     }
   }
 
@@ -241,13 +273,21 @@ export function loadImageToCanvas(file) {
     const img = new Image()
     const url = URL.createObjectURL(file)
     img.onload = () => {
+      let w = img.naturalWidth || img.width
+      let h = img.naturalHeight || img.height
+      const edge = Math.max(w, h)
+      if (edge > MAX_SOURCE_EDGE) {
+        const s = MAX_SOURCE_EDGE / edge
+        w = Math.max(1, Math.round(w * s))
+        h = Math.max(1, Math.round(h * s))
+      }
       const c = document.createElement("canvas")
-      c.width = img.width
-      c.height = img.height
+      c.width = w
+      c.height = h
       const ctx = c.getContext("2d", { alpha: false })
       ctx.imageSmoothingEnabled = true
       ctx.imageSmoothingQuality = "high"
-      ctx.drawImage(img, 0, 0)
+      ctx.drawImage(img, 0, 0, w, h)
       URL.revokeObjectURL(url)
       resolve(c)
     }

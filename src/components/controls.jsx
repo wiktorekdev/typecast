@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react"
-import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectGroup,
@@ -9,19 +8,82 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
+import { cn } from "@/lib/utils"
 
 const HEX_RE = /^#[0-9a-f]{6}$/i
 
+const fieldClass =
+  "box-border h-7 shrink-0 rounded-lg border border-zinc-800 bg-zinc-900/80 text-center font-mono text-[12px] tabular-nums text-zinc-100 outline-none transition placeholder:text-zinc-600 focus-visible:border-zinc-600 focus-visible:ring-2 focus-visible:ring-zinc-500/40"
+
 export function NumberSlider({ label, value, min, max, step = 1, onChange }) {
-  const format = (next) => (step < 1 ? Number(next).toFixed(1) : String(next))
+  const format = (next) => {
+    if (step < 0.1) return Number(next).toFixed(2)
+    if (step < 1) return Number(next).toFixed(1)
+    return String(Math.round(Number(next)))
+  }
+
+  const [draft, setDraft] = useState(() => format(value))
+  const [focused, setFocused] = useState(false)
+
+  useEffect(() => {
+    if (!focused) setDraft(format(value))
+  }, [value, focused, step])
+
+  const snap = (n) => {
+    if (!Number.isFinite(n)) return value
+    const stepped = Math.round((n - min) / step) * step + min
+    const clamped = Math.min(max, Math.max(min, stepped))
+    if (step < 0.1) return Number(clamped.toFixed(2))
+    if (step < 1) return Number(clamped.toFixed(1))
+    return Math.round(clamped)
+  }
+
+  const commit = (raw) => {
+    const parsed = parseFloat(String(raw).replace(",", "."))
+    const next = snap(parsed)
+    setDraft(format(next))
+    if (next !== value) onChange(next)
+  }
 
   return (
-    <div className="flex w-full flex-col gap-2">
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-[13px] text-zinc-400">{label}</span>
-        <span className="shrink-0 font-mono text-[12px] tabular-nums text-zinc-100">
-          {format(value)}
-        </span>
+    <div className="flex w-full min-w-0 flex-col gap-2">
+      <div className="flex min-w-0 items-center justify-between gap-2">
+        <span className="min-w-0 flex-1 truncate text-[13px] text-zinc-400">{label}</span>
+        <input
+          aria-label={label}
+          type="text"
+          inputMode={step < 1 ? "decimal" : "numeric"}
+          value={draft}
+          onFocus={(e) => {
+            setFocused(true)
+            e.target.select()
+          }}
+          onBlur={() => {
+            setFocused(false)
+            commit(draft)
+          }}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") e.currentTarget.blur()
+            if (e.key === "Escape") {
+              setDraft(format(value))
+              e.currentTarget.blur()
+            }
+            if (e.key === "ArrowUp") {
+              e.preventDefault()
+              const next = snap(value + step)
+              setDraft(format(next))
+              onChange(next)
+            }
+            if (e.key === "ArrowDown") {
+              e.preventDefault()
+              const next = snap(value - step)
+              setDraft(format(next))
+              onChange(next)
+            }
+          }}
+          className={cn(fieldClass, "w-12 px-1")}
+        />
       </div>
       <Slider
         aria-label={label}
@@ -30,7 +92,7 @@ export function NumberSlider({ label, value, min, max, step = 1, onChange }) {
         step={step}
         value={value}
         onValueChange={(next) => onChange(Array.isArray(next) ? next[0] : next)}
-        className="w-full"
+        className="w-full min-w-0"
       />
     </div>
   )
@@ -61,7 +123,7 @@ export function OptionSelect({ label, value, onChange, options }) {
 }
 
 export function ColorField({ label, value, onChange }) {
-  const safe = HEX_RE.test(value) ? value : "#000000"
+  const safe = HEX_RE.test(value) ? value.toLowerCase() : "#000000"
   const [draft, setDraft] = useState(safe)
 
   useEffect(() => {
@@ -76,11 +138,14 @@ export function ColorField({ label, value, onChange }) {
   }
 
   return (
-    <div className="flex w-full flex-col gap-2">
-      <span className="text-[13px] text-zinc-400">{label}</span>
-      <div className="flex min-w-0 items-center gap-2.5">
-        <label className="relative size-9 shrink-0 cursor-pointer overflow-hidden rounded-xl ring-1 ring-white/10">
-          <span className="absolute inset-0" style={{ backgroundColor: safe }} />
+    <div className="flex w-full min-w-0 items-center justify-between gap-2">
+      <span className="min-w-0 flex-1 truncate text-[13px] text-zinc-400">{label}</span>
+      <div className="flex shrink-0 items-center gap-2">
+        <label
+          className="relative size-7 shrink-0 cursor-pointer overflow-hidden rounded-lg shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)] ring-1 ring-black/40 transition hover:brightness-110"
+          title={safe}
+          style={{ backgroundColor: safe }}
+        >
           <input
             type="color"
             value={safe}
@@ -93,14 +158,17 @@ export function ColorField({ label, value, onChange }) {
             className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
           />
         </label>
-        <Input
+        <input
           aria-label={`${label} hex`}
           type="text"
           value={draft}
           spellCheck={false}
           maxLength={7}
           onChange={(e) => commitHex(e.target.value)}
-          className="h-9 min-h-9 min-w-0 flex-1 rounded-xl border-zinc-800 bg-zinc-900/80 px-3 font-mono text-[13px] uppercase tracking-wide shadow-none dark:bg-zinc-900/80"
+          onBlur={() => {
+            if (!HEX_RE.test(draft)) setDraft(safe)
+          }}
+          className={cn(fieldClass, "w-[5.25rem] px-1.5 uppercase tracking-wide")}
         />
       </div>
     </div>
