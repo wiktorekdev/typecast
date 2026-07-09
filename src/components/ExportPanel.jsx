@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import { DownloadSimple, X } from "@phosphor-icons/react"
 import { EXPORT_FORMATS, EXPORT_PRESETS, exportSize, scaleForPreset } from "@/lib/export.js"
 import { renderAsciiToUrl } from "@/hooks/useAsciiRender.js"
+import { useI18n } from "@/i18n/I18nProvider.jsx"
 import { cn } from "@/lib/utils"
 
 export function ExportPanel({
@@ -12,6 +13,7 @@ export function ExportPanel({
   fileName,
   onSaved,
 }) {
+  const { t } = useI18n()
   const [formatId, setFormatId] = useState("png")
   const [presetId, setPresetId] = useState("4k")
   const [exporting, setExporting] = useState(false)
@@ -39,7 +41,7 @@ export function ExportPanel({
       onSaved?.()
       onClose()
     } catch {
-      onSaved?.("Export failed.")
+      onSaved?.(t("exportFailed"))
     } finally {
       setExporting(false)
     }
@@ -51,11 +53,11 @@ export function ExportPanel({
     <div className="pointer-events-none absolute inset-x-0 bottom-20 z-30 flex justify-center px-4">
       <div className="pointer-events-auto w-full max-w-[22rem] rounded-2xl border border-white/10 bg-zinc-950/95 p-4 shadow-2xl shadow-black/50 backdrop-blur-md">
         <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className="text-[14px] font-semibold tracking-tight">Export</h2>
+          <h2 className="text-[14px] font-semibold tracking-tight">{t("exportTitle")}</h2>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close export"
+            aria-label={t("closeExport")}
             className="flex size-8 items-center justify-center rounded-full text-zinc-400 transition hover:bg-white/10 hover:text-zinc-100"
           >
             <X className="size-4" weight="bold" />
@@ -64,7 +66,7 @@ export function ExportPanel({
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <span className="text-[12px] text-zinc-400">Format</span>
+            <span className="text-[12px] text-zinc-400">{t("format")}</span>
             <div className="grid grid-cols-3 gap-1.5">
               {EXPORT_FORMATS.map((f) => {
                 const active = formatId === f.id
@@ -89,7 +91,7 @@ export function ExportPanel({
 
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[12px] text-zinc-400">Size</span>
+              <span className="text-[12px] text-zinc-400">{t("sizeLabel")}</span>
               {size && (
                 <span className="font-mono text-[12px] tabular-nums text-zinc-300">
                   {size.w.toLocaleString()} × {size.h.toLocaleString()}
@@ -125,7 +127,7 @@ export function ExportPanel({
             className="flex h-10 w-full items-center justify-center gap-2 rounded-full bg-white text-[13px] font-semibold text-zinc-950 transition hover:bg-zinc-100 disabled:opacity-40"
           >
             <DownloadSimple weight="bold" className="size-4" />
-            {exporting ? "Saving…" : `Download ${format.label}`}
+            {exporting ? t("saving") : t("download", { format: format.label })}
           </button>
         </div>
       </div>

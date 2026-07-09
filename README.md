@@ -32,7 +32,8 @@
   <img src="https://img.shields.io/badge/privacy-100%25%20local-111?style=flat" alt="Privacy" />
   <img src="https://img.shields.io/badge/platform-browser-informational?style=flat" alt="Platform" />
   <img src="https://img.shields.io/github/last-commit/wiktorekdev/typecast?style=flat" alt="Last commit" />
-  <img src="https://img.shields.io/github/languages/top/wiktorekdev/typecast?style=flat" alt="Language" />
+  <img src="https://img.shields.io/badge/language-JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black" alt="JavaScript" />
+  <img src="https://img.shields.io/badge/i18n-EN%20%7C%20PL%20%7C%20DE%20%7C%20ES%20%7C%20FR%20%7C%20UK-111?style=flat" alt="i18n" />
   <img src="https://img.shields.io/github/repo-size/wiktorekdev/typecast?style=flat" alt="Repo size" />
 </p>
 
@@ -77,6 +78,7 @@
 - **Export panel** — format + size presets with live pixel dimensions
 - **Worker render** — heavy jobs off the main thread when the browser allows it
 - **Privacy-first** — pixels never leave the device
+- **i18n** — EN · PL · DE · ES · FR · UK (instant switch, saved in `localStorage`)
 
 ## Stack
 

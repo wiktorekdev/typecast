@@ -19,6 +19,7 @@ import {
 } from "@/components/controls.jsx"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
+import { LanguageSelect, useI18n } from "@/i18n/I18nProvider.jsx"
 import { cn } from "@/lib/utils"
 
 const DEFAULT_OPTS = {
@@ -43,6 +44,7 @@ const DEFAULT_OPTS = {
 const GITHUB_URL = "https://github.com/wiktorekdev"
 
 export default function App() {
+  const { t } = useI18n()
   const [opts, setOpts] = useState(DEFAULT_OPTS)
   const [sourceCanvas, setSourceCanvas] = useState(null)
   const [fileName, setFileName] = useState("")
@@ -63,9 +65,9 @@ export default function App() {
       setSourceCanvas(await loadImageToCanvas(file))
       setFileName(file.name || "image")
     } catch {
-      setStatus("Could not load image.")
+      setStatus(t("loadFailed"))
     }
-  }, [])
+  }, [t])
 
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     accept: { "image/*": [] },
@@ -107,14 +109,14 @@ export default function App() {
         })
       } catch (err) {
         console.error(err)
-        if (gen === previewGen.current) setStatus("Preview failed.")
+        if (gen === previewGen.current) setStatus(t("previewFailed"))
       } finally {
         if (gen === previewGen.current) setRendering(false)
       }
     }, 140)
 
     return () => window.clearTimeout(timer)
-  }, [opts, sourceCanvas])
+  }, [opts, sourceCanvas, t])
 
   useEffect(() => {
     const onPaste = (event) => {
@@ -132,9 +134,9 @@ export default function App() {
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-zinc-950 text-zinc-50">
-      <header className="flex h-12 shrink-0 items-center justify-between border-b border-zinc-800/80 px-4">
+      <header className="flex h-12 shrink-0 items-center justify-between gap-3 border-b border-zinc-800/80 px-4">
         <div className="flex min-w-0 items-center gap-2.5">
-          <span className="text-[14px] font-semibold tracking-tight">Typecast</span>
+          <span className="text-[14px] font-semibold tracking-tight">{t("brand")}</span>
           {sourceCanvas && fileName && (
             <span className="hidden min-w-0 max-w-[12rem] truncate text-[12px] text-zinc-500 md:inline">
               {fileName}
@@ -144,9 +146,12 @@ export default function App() {
             <span className="shrink-0 text-[12px] text-zinc-400">{status}</span>
           )}
         </div>
-        {rendering && (
-          <span className="text-[12px] text-zinc-500">Rendering…</span>
-        )}
+        <div className="flex shrink-0 items-center gap-2">
+          {rendering && (
+            <span className="hidden text-[12px] text-zinc-500 sm:inline">{t("rendering")}</span>
+          )}
+          <LanguageSelect />
+        </div>
       </header>
 
       <div className="flex min-h-0 flex-1">
@@ -176,14 +181,14 @@ export default function App() {
                 </div>
                 <div className="flex flex-col items-center gap-1 px-4">
                   <span className="text-[15px] font-medium tracking-tight">
-                    Drop an image here
+                    {t("dropTitle")}
                   </span>
                   <span className="text-[13px] text-zinc-500">
-                    Binary · ASCII · characters · export HD–8K
+                    {t("dropSub")}
                   </span>
                 </div>
                 <span className="mt-1 inline-flex h-9 items-center rounded-full bg-white px-4 text-[13px] font-semibold text-zinc-950">
-                  Choose file
+                  {t("chooseFile")}
                 </span>
               </button>
             </div>
@@ -213,7 +218,7 @@ export default function App() {
               opts={opts}
               fileName={fileName}
               onSaved={(msg) => {
-                setStatus(msg || "Saved")
+                setStatus(msg || t("saved"))
                 window.setTimeout(() => setStatus(""), 1800)
               }}
             />
@@ -222,7 +227,7 @@ export default function App() {
           {isDragActive && sourceCanvas && (
             <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center bg-zinc-950/80">
               <p className="rounded-full bg-white px-4 py-2 text-[13px] font-semibold text-zinc-950">
-                Drop to replace
+                {t("dropToReplace")}
               </p>
             </div>
           )}
@@ -242,22 +247,22 @@ export default function App() {
 
         <aside className="tc-panel flex w-[320px] shrink-0 flex-col border-l border-zinc-800/80 bg-zinc-950 xl:w-[360px]">
           <div className="flex-1 space-y-3 overflow-y-auto p-3">
-            <PanelCard title="Type">
+            <PanelCard title={t("panelType")}>
               <OptionSelect
-                label="Characters"
+                label={t("characters")}
                 value={opts.charSet}
                 onChange={(value) => set("charSet", value)}
-                options={Object.entries(CHAR_SETS).map(([value, item]) => ({
+                options={Object.keys(CHAR_SETS).map((value) => ({
                   value,
-                  label: item.label,
+                  label: t(`charset_${value}`),
                 }))}
               />
 
               {opts.charSet === "custom" && (
                 <div className="flex w-full flex-col gap-2">
-                  <span className="text-[13px] text-zinc-400">Custom</span>
+                  <span className="text-[13px] text-zinc-400">{t("custom")}</span>
                   <Input
-                    aria-label="Custom characters"
+                    aria-label={t("customChars")}
                     type="text"
                     value={opts.customChars}
                     placeholder="01"
@@ -268,7 +273,7 @@ export default function App() {
               )}
 
               <NumberSlider
-                label="Columns"
+                label={t("columns")}
                 value={opts.cols}
                 min={60}
                 max={400}
@@ -276,7 +281,7 @@ export default function App() {
               />
 
               <OptionSelect
-                label="Font"
+                label={t("font")}
                 value={opts.fontFamily}
                 onChange={(value) => set("fontFamily", value)}
                 options={FONTS.map((font) => ({
@@ -286,7 +291,7 @@ export default function App() {
               />
 
               <NumberSlider
-                label="Size"
+                label={t("size")}
                 value={opts.fontSize}
                 min={4}
                 max={20}
@@ -294,26 +299,26 @@ export default function App() {
               />
             </PanelCard>
 
-            <PanelCard title="Color">
+            <PanelCard title={t("panelColor")}>
               <OptionSelect
-                label="Mode"
+                label={t("mode")}
                 value={opts.colorMode}
                 onChange={(value) => set("colorMode", value)}
-                options={Object.entries(COLOR_MODES).map(([value, mode]) => ({
+                options={Object.keys(COLOR_MODES).map((value) => ({
                   value,
-                  label: mode.label,
+                  label: t(`color_${value}`),
                 }))}
               />
 
               <ColorField
-                label="Background"
+                label={t("background")}
                 value={opts.bgColor}
                 onChange={(value) => set("bgColor", value)}
               />
 
               {opts.colorMode === "bw" && (
                 <ColorField
-                  label="Text"
+                  label={t("text")}
                   value={opts.fgColor}
                   onChange={(value) => set("fgColor", value)}
                 />
@@ -321,16 +326,16 @@ export default function App() {
 
               {(opts.colorMode === "tinted" || opts.colorMode === "tintedRaw") && (
                 <ColorField
-                  label="Tint"
+                  label={t("tint")}
                   value={opts.tintColor}
                   onChange={(value) => set("tintColor", value)}
                 />
               )}
             </PanelCard>
 
-            <PanelCard title="Adjust">
+            <PanelCard title={t("panelAdjust")}>
               <NumberSlider
-                label="Contrast"
+                label={t("contrast")}
                 value={opts.contrast}
                 min={0.5}
                 max={3}
@@ -338,14 +343,14 @@ export default function App() {
                 onChange={(v) => set("contrast", v)}
               />
               <NumberSlider
-                label="Threshold"
+                label={t("threshold")}
                 value={opts.threshold}
                 min={0}
                 max={50}
                 onChange={(v) => set("threshold", v)}
               />
               <div className="flex items-center justify-between gap-3">
-                <span className="text-[13px] text-zinc-400">Invert</span>
+                <span className="text-[13px] text-zinc-400">{t("invert")}</span>
                 <Switch
                   checked={opts.invert}
                   onCheckedChange={(checked) => set("invert", checked)}

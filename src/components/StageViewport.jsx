@@ -6,6 +6,7 @@ import {
   MagnifyingGlassPlus,
   UploadSimple,
 } from "@phosphor-icons/react"
+import { useI18n } from "@/i18n/I18nProvider.jsx"
 import { cn } from "@/lib/utils"
 
 const MIN_VIEW = 0.15
@@ -50,6 +51,7 @@ export function StageViewport({
   onReplace,
   hasImage,
 }) {
+  const { t } = useI18n()
   const viewportRef = useRef(null)
   const imgRef = useRef(null)
   const [viewZoom, setViewZoom] = useState(1)
@@ -311,7 +313,7 @@ export function StageViewport({
               <img
                 ref={imgRef}
                 src={previewUrl}
-                alt="Typecast preview"
+                alt={t("previewAlt")}
                 draggable={false}
                 onLoad={onImageLoad}
                 width={dispW}
@@ -321,19 +323,18 @@ export function StageViewport({
                   width: dispW ? `${dispW}px` : "auto",
                   height: dispH ? `${dispH}px` : "auto",
                   backgroundColor: bgColor,
-                  // browser bilinear downsample when zoomed out; pixel grid when zoomed in
                   imageRendering: enlarge ? "pixelated" : "auto",
                 }}
               />
             ) : (
-              <p className="text-[13px] text-zinc-500">Generating…</p>
+              <p className="text-[13px] text-zinc-500">{t("generating")}</p>
             )}
           </div>
         </div>
 
         {rendering && (
           <span className="pointer-events-none absolute left-4 top-4 rounded-full bg-zinc-950/80 px-3 py-1 text-[12px] text-zinc-400 ring-1 ring-zinc-800">
-            Updating…
+            {t("updating")}
           </span>
         )}
       </div>
@@ -343,14 +344,14 @@ export function StageViewport({
           <button
             type="button"
             onClick={resetToFit}
-            title="Zoom (click to fit)"
+            title={t("zoomHint")}
             className="inline-flex h-9 min-w-[3.5rem] items-center justify-center rounded-full px-2.5 font-mono text-[12px] tabular-nums text-zinc-300 transition hover:bg-white/10"
           >
             {zoomPct}%
           </button>
 
           <FloatingBarButton
-            title="Zoom out"
+            title={t("zoomOut")}
             onClick={() => zoomBy(1 / ZOOM_STEP)}
             className="px-2.5"
           >
@@ -358,7 +359,7 @@ export function StageViewport({
           </FloatingBarButton>
 
           <FloatingBarButton
-            title="Zoom in"
+            title={t("zoomIn")}
             onClick={() => zoomBy(ZOOM_STEP)}
             className="px-2.5"
           >
@@ -367,17 +368,17 @@ export function StageViewport({
 
           <div className="mx-1 h-5 w-px shrink-0 bg-white/10" />
 
-          <FloatingBarButton title="Fit" onClick={resetToFit} className="px-2.5">
+          <FloatingBarButton title={t("fit")} onClick={resetToFit} className="px-2.5">
             <CornersOut weight="bold" className="size-4" />
-            <span className="hidden sm:inline">Fit</span>
+            <span className="hidden sm:inline">{t("fit")}</span>
           </FloatingBarButton>
 
           {hasImage && (
             <>
               <div className="mx-1 h-5 w-px shrink-0 bg-white/10" />
-              <FloatingBarButton title="Replace image" onClick={onReplace}>
+              <FloatingBarButton title={t("replaceImage")} onClick={onReplace}>
                 <UploadSimple weight="bold" className="size-4" />
-                <span className="hidden sm:inline">Replace</span>
+                <span className="hidden sm:inline">{t("replace")}</span>
               </FloatingBarButton>
             </>
           )}
@@ -395,7 +396,7 @@ export function StageViewport({
             )}
           >
             <DownloadSimple weight="bold" className="size-4" />
-            Export
+            {t("export")}
           </button>
         </div>
       </div>
